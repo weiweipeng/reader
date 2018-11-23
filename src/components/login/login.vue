@@ -44,37 +44,83 @@ export default {
 				mui.alert('账号/密码不能为空!', '启思教育');
 				return false;
 			}
-//			this.$http.options.emulateJSON = true;
-//			this.$http.options.header={
-//				 'content-type' : 'application/json'
-//			}
+
 			_this.disable = true;
-			console.log(this);
-			this.$http.post("http://loginapi.keys-edu.com///api/UserAccount/GetUserLogin",{"emulateJSON":true}, options).then(function(res){
-				console.log(res.body);
+
+			this.$http.post("http://loginapi.keys-edu.com///api/UserAccount/GetUserLogin" , options,{"emulateJSON":true}).then(function(res){
+
 				var data = res.body;
-				if(data.ResponseMessage == '登录成功!'){
-					//重置
-					_this.disable = false;
-					if(data.UserType == 2) {
-						mui.alert('没有登陆权限!', '启思教育');
-						return false;
-					} else {
-						if(data.classList == null) {
-							mui.alert('请先在桌面端进行初始化设置!', '启思教育');
-							return false;
-						} else {
-							//跳转
-							store.commit('getUserInfo',data);
-							mui.toast(data.ResponseMessage);
-							_this.$router.push({path: '/releaseTask'});
+				
+//				if(data.ResponseMessage == '登录成功!'){
+//					//重置
+//					_this.disable = false;
+//					if(data.UserType == 1) {
+//						mui.alert('没有登陆权限!', '启思教育');
+//						return false;
+//					} else {
+//						if(data.classList == null) {
+//							mui.alert('请先在桌面端进行初始化设置!', '启思教育');
+//							return false;
+//						} else {
+//							//跳转
+//							store.commit('getUserInfo',data);
+//							mui.toast(data.ResponseMessage);
+//							_this.$router.push({path: '/releaseTask'});
+//						}
+//					}
+//				} else {
+//					//重置
+//					_this.disable = false;
+//					mui.alert(data.ResponseMessage, '启思教育');
+//					return false;
+//				}
+//				for(var item in data){
+//					console.log(data[item]);
+//				}
+				var jsonParseData=JSON.parse(data);
+				if(jsonParseData.Result == 1){
+					var changeData = {};
+					var getdata=JSON.parse(jsonParseData.Data);
+					console.log(getdata);
+					changeData.BuyType=getdata.BuyType;
+					changeData.ClassId=getdata.ClassId;
+					changeData.CourseId=getdata.CourseId;
+					changeData.GradeId=getdata.GradeId;
+					changeData.Restime=getdata.Restime;
+					changeData.TOKEN=getdata.Token;
+					changeData.UserAccountEnum=getdata.UserAccountEnum;
+					changeData.UserAccountId=getdata.UserAccountId;
+					changeData.UserAccountSchoolId=getdata.UserAccountSchoolId;
+					changeData.UserToken=getdata.UserToken;
+					console.log(changeData);
+					_this.$http.post("http://loginapi.keys-edu.com//api/useraccount/toggleuser" , changeData , {"emulateJSON":true}).then(function(res){
+						var jsonAccountData = res.body;
+						jsonAccountData = JSON.parse(jsonAccountData);
+						if(jsonAccountData.Result == 1){
+							var accountData=JSON.parse(jsonAccountData.Data);
+							var accountPostData={};
+							accountPostData.UserToken=accountData.UserToken;
+							accountPostData.School=accountData.UserAccountSchoolId;
+							accountPostData.BuyType=accountData.BuyType;
+							accountPostData.Restime=accountData.Restime;
+							accountPostData.Sign=accountData.Sign;
+							accountPostData.Class=accountData.ClassId;
+							accountPostData.Grade=accountData.GradeId;
+							_this.$http.post("http://ksapi.keys-edu.com///api/UserToken/GetUserTokenData" , accountPostData , {"emulateJSON":true}).then(function(res){
+								var jsonUserSign = JSON.parse(res.body);
+								console.log(jsonUserSign);
+								store.commit('getUserInfo',jsonUserSign.Data);
+								mui.toast(jsonUserSign.Message);
+								_this.$router.push({path: '/releaseTask'});
+							},function(err){
+//								mui.alert();
+							});
 						}
-					}
-				} else {
-					//重置
-					_this.disable = false;
-					mui.alert(data.ResponseMessage, '启思教育');
-					return false;
+//						jsonAccountData=JSON.parse(jsonAccountData);
+						console.log(jsonAccountData);
+					},function(err){
+						console.log(err);
+					});
 				}
 				
 				

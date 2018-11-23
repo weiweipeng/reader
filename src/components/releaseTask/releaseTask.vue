@@ -12,8 +12,22 @@
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="picker">
 							<i class="iconfont icon-gengduoneirong"></i>
-							<span>选择范围</span>
+							<span>选择年级</span>
 							<span class="mui-pull-right" v-text="checkGrade"></span>
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" @tap="pickerBig">
+							<i class="iconfont icon-gengduoneirong"></i>
+							<span>选择知识点</span>
+							<span class="mui-pull-right" v-text="bigKnow"></span>
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" @tap="pickerSmall">
+							<i class="iconfont icon-gengduoneirong"></i>
+							<span>选择年级</span>
+							<span class="mui-pull-right" v-text="smallKnow"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
@@ -67,8 +81,12 @@ export default {
   	data: function(){
       	return {
       		userInfo: null,
+      		bigKnow: "",
+      		smallKnow:　"",
+      		jsonsData: [],
       		classInfo: [],
 			grade: [],
+			gradeId:1,
 			checkGrade: '',
 			textList: [],
 			checkSubject: [],
@@ -91,7 +109,8 @@ export default {
 				
 				this.userInfo = store.state.userInfo;
 	   			this.checkTime = this.getNowTime();
-	   			this.getInfo();
+//	   			this.initGetData();
+//	   			this.getInfo();
 			}
 			if(from.name == 'classList'){
 				this.SubjectClass = store.state.checkClass;
@@ -110,7 +129,7 @@ export default {
    		if(store.state.userInfo){
    			this.userInfo = store.state.userInfo;
    			this.checkTime = this.getNowTime();
-   			this.getInfo();
+// 			this.getInfo();
    		}
    	},
    	mounted: function() {
@@ -118,6 +137,38 @@ export default {
    		mui('.mui-scroll-wrapper').scroll({deceleration:0.002});
    	},
    	methods: {
+   		initGetData: function(pid){
+   			var id=pid!=undefined?pid:0;
+   			var _this=this;
+			var jsonGetGrade={
+				'PId': id,
+				'Code': 2,
+				'Grade': _this.gradeId,
+				'Term': 1,
+				'TOKEN': store.state.userInfo
+			};
+			this.$http.post("http://ksapi.keys-edu.com//api/common/GetKnowledgeList" , jsonGetGrade , {"emulateJSON":true}).then(function(res){
+				var gradeData = JSON.parse(res.body);
+				console.log(JSON.parse(gradeData.Data));
+				if(pid!=undefined){
+					_this.jsonsData=JSON.parse(gradeData.Data);
+				}
+			},function(err){
+				
+			});
+		},
+		pickerBig: function(){
+			var _this = this;
+			var picker3 = new mui.PopPicker();
+			var items={};
+			var newData=[];
+			for(item in _this.jsonsData){
+				console.log(item);
+			}
+		},
+		pickerSmall: function(){
+			
+		},
    		getInfo: function(){
    			var _this =this;
    			var classInfo = _this.userInfo.classList;
@@ -157,43 +208,38 @@ export default {
 		},
 		picker: function(){
 			var _this = this;
-			var picker3 = new mui.PopPicker({
-				layer: 3
-			});
-			var greadData = [];
-			_this.grade.forEach(function(json, index){
-				var newData = {
-					text: json,
-					children: [
-						{
-							text: '上学期',
-							children: [
-								{text: 'U1'},
-								{text: 'U2'}
-							]
-						},
-						{
-							text: '下学期',
-							children: [
-								{text: 'U1'},
-								{text: 'U2'}
-							]
-						}
-					]
-				}
-				greadData.push(newData);
-			})
-			picker3.setData(greadData);
+			var picker3 = new mui.PopPicker();
+//			var greadData = [];
+//			_this.grade.forEach(function(json, index){
+//				
+//				greadData.push(newData);
+//			})
+			var newData = [
+					{
+						text: '一二年级',
+						value: '1'
+						
+					},
+					{
+						text: '三年级',
+						value: '3'
+					}]
+			
+			picker3.setData(newData);
 			picker3.show(function(items) {
-				var checkGrade = items[0].text + '-' + items[1].text + '-' + items[2].text;
-				if(_this.checkGrade != checkGrade){
-					_this.checkGrade = checkGrade;
-					//重置
-					_this.checkSubject = [];
-			   		_this.SubjectClass = [];
-					store.commit('getCheckSubject', null);
-					store.commit('getCheckClass', null);
-				}
+				console.log(items);
+				_this.checkGrade = items[0].text;
+				_this.gradeId = items[0].value;
+				_this.initGetData();
+//				var checkGrade = items[0].text + '-' + items[1].text + '-' + items[2].text;
+//				if(_this.checkGrade != checkGrade){
+//					_this.checkGrade = checkGrade;
+//					//重置
+//					_this.checkSubject = [];
+//			   		_this.SubjectClass = [];
+//					store.commit('getCheckSubject', null);
+//					store.commit('getCheckClass', null);
+//				}
 				
 			});
 		},
