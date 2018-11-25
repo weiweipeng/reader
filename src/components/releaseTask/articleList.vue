@@ -17,10 +17,10 @@
 					<form class="mui-input-group">
 						<div class="mui-input-row mui-checkbox" v-for="(item, index) in textList">
 							<label class="list-cont">
-								<h4 class="mui-ellipsis"><span class="circle" v-show="item.SendCheck == '1'"></span><span v-text="item.SubjectName"></span></h4>
+								<h4 class="mui-ellipsis"><span class="circle" v-show="item.SendCheck == '1'"></span><span v-html="item.Title"></span></h4>
 								<h5 v-text="item.QuestionsType"></h5>
 							</label>
-							<input name="checkbox1" :value="item" type="checkbox" v-model="checkSubject">
+							<input name="checkbox1" :value="item.SubjectId" type="checkbox" v-model="checkSubject">
 						</div>
 					</form>
 				</div>
@@ -38,8 +38,9 @@ export default {
   	data: function(){
       	return {
       		textList: [],
-      		pSize: 20,
+      		pSize: 10,
 			page: 1,
+			postData:{},
 			checkSubject: [],
 			checkGrade: '',
 			self: null
@@ -48,6 +49,7 @@ export default {
    	watch:{
 		checkSubject: function(val,oldval){
 			store.commit('getCheckSubject', val);
+			console.log(val);
 			if(val.length > 5){
 				mui.toast('不能超过5篇哦!');
 			}
@@ -55,6 +57,7 @@ export default {
 	},
    	activated: function() {
    		var deceleration = mui.os.ios?0.003:0.0009;
+   		this.postData=store.state.postArticelData;
 		mui('.mui-scroll-wrapper').scroll({bounce: false, deceleration:deceleration});
    		if(this.$route.query.checkGrade){
 			//判断是否是第一次加载
@@ -67,7 +70,7 @@ export default {
 				this.page = 1;
 				this.pullRefresh();
    			}
-   			this.checkGrade = this.$route.query.checkGrade;
+// 			this.checkGrade = this.$route.query.checkGrade;
    		}
    	},
    	methods: {
@@ -87,35 +90,40 @@ export default {
 							_this.page = 1;
 							_this.textList = [];
 							_this.checkSubject = [];
-							var checkGrade = _this.$route.query.checkGrade.split('-');
-							var options = {
-								Grade: checkGrade[0],
-								Term: checkGrade[1],
-								Pagesize: _this.pSize,
-								Pagination: 1,
-								OrderBy: 'Sort ASC',
-								Author: store.state.userInfo.UserId
-							}
+//							var checkGrade = _this.$route.query.checkGrade.split('-');
+//							var options = {
+//								Grade: checkGrade[0],
+//								Term: checkGrade[1],
+//								Pagesize: _this.pSize,
+//								Pagination: 1,
+//								OrderBy: 'Sort ASC',
+//								Author: store.state.userInfo.UserId
+//							}
+//							store.state.postArticelData
+							_this.postData.PageIndex= _this.page;
+							_this.postData.PageSize= _this.pSize;
 							self.refresh(true);//重置上拉加载	
-							_this.getData(options, self, 0);
+							_this.getData(_this.postData, self, 0);
 						}
 					},
 					up: {
 						auto: true,
 						callback: function() {
 							var self = this;
-							var checkGrade = _this.$route.query.checkGrade.split('-');
-							var options = {
-								Grade: checkGrade[0],
-								Term: checkGrade[1],
-								Pagesize: _this.pSize,
-								Pagination: _this.page,
-								OrderBy: 'Sort ASC',
-								Author: store.state.userInfo.UserId
-							}
+//							var checkGrade = _this.$route.query.checkGrade.split('-');
+//							var options = {
+//								Grade: checkGrade[0],
+//								Term: checkGrade[1],
+//								Pagesize: _this.pSize,
+//								Pagination: _this.page,
+//								OrderBy: 'Sort ASC',
+//								Author: store.state.userInfo.UserId
+//							}
 							_this.self = self;
+							_this.postData.PageIndex= _this.page;
+							_this.postData.PageSize= _this.pSize;
 							//data表示参数，index表示第一个选项卡， self表示当前dom节点，1 表示上拉加载
-							_this.getData(options, self, 1);
+							_this.getData(_this.postData, self, 1);
 						}
 					}
 				})
@@ -123,12 +131,27 @@ export default {
    		},
    		getData: function(data, self, type){
 			var _this = this;
-			this.$http.post("http://syapp.keys-edu.com/api/Subject/GetDataSendCheck", data).then(function(res){
-				console.log(res.body);
-				_this.textList.push.apply(_this.textList, res.body);
+			this.$http.post("http://ksapi.keys-edu.com///api/subject/getsubjectlistbykid", store.state.postArticelData, {"emulateJSON":true}).then(function(res){
+				
+				var datas=JSON.parse(res.body);
+				var maindata=JSON.parse(datas.Data);
+
+				
+				var new_arr=[];
+				for(var i=0;i<maindata.length;i++){
+					var goods={};
+					goods.SubjectId=maindata[i].SubjectId;
+
+					var title=maindata[i].Title;
+					title=title.replace('{0}','(<span class="inputs" ></span>)')
+					goods.Title=title;
+					new_arr.push(goods);
+				}
+				console.log(new_arr);
+				_this.textList.push.apply(_this.textList, new_arr);
 				_this.page ++ ;
 				
-				var noMore = res.body.length < _this.pSize ? true : false;
+				var noMore = maindata < _this.pSize ? true : false;
 				//复位下拉 或者上拉状态
 				//type 说明： 0 表示下拉刷新 1 表示上啦加载
    				if(type === 0){
@@ -176,6 +199,11 @@ export default {
 			font-size: .36rem;
 		}
 		
+	}
+	.inputs{
+		border-bottom: 1px solid #333;
+		width: 0.6rem;
+		display: inline-block;
 	}
 	.tip{
 		padding: .2rem .4rem;

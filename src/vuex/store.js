@@ -8,7 +8,10 @@ const state = {
     userInfo: null,
     checkSubject: [],
     checkClass: [],
-    grade: null
+    accounts: {},
+    postArticelData: {},
+    grade: null,
+    classes: []
 }
 const mutations={
     tabListHide: function(state){
@@ -28,6 +31,18 @@ const mutations={
     },
     getGrade: function(state, data){
     	state.grade = data;
+    },
+    getClasses: function(state, data){
+    	state.classes = data;
+    },
+    getAccountData: function(state,data){
+    	state.accounts=data;
+    },
+    getAccountDatas: function(state,data){
+    	state.accounts=data;
+    },
+    getPostArticelData: function(state,data){
+    	state.postArticelData=data;
     }
 }
 

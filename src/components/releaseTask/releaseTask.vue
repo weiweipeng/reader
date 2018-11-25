@@ -19,15 +19,22 @@
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerBig">
 							<i class="iconfont icon-gengduoneirong"></i>
-							<span>选择知识点</span>
+							<span>选择大知识点</span>
 							<span class="mui-pull-right" v-text="bigKnow"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerSmall">
 							<i class="iconfont icon-gengduoneirong"></i>
-							<span>选择年级</span>
+							<span>选择小知识点</span>
 							<span class="mui-pull-right" v-text="smallKnow"></span>
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" @tap="pickerDifficult">
+							<i class="iconfont icon-gengduoneirong"></i>
+							<span>选择难度</span>
+							<span class="mui-pull-right" v-text="diffcultyStr"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
@@ -36,18 +43,20 @@
 							<span>选择班级</span>
 							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
 							<div class="checkBox">
-								<p v-for="sub in SubjectClass" v-text="sub.ClassName"></p>
+								<p v-for="sub in SubjectClass" v-text="sub.name"></p>
 							</div>
 						</router-link>
 					</li>
+					
 					<li class="mui-table-view-cell">
 						<router-link :to="{path:'/articleList',query: {checkGrade: checkGrade}}" class="mui-navigate-right">
 							<i class="iconfont icon-svgwrite"></i>
 							<span>选择篇章</span>
 							<span class="mui-pull-right" v-if="checkSubject.length === 0">未选择</span>
-							<div class="checkBox">
-								<p v-for="sub in checkSubject" v-text="sub.SubjectName"></p>
-							</div>
+							<span class="mui-pull-right" v-else v-text="checkSubject.length"></span>
+							<!--<div class="checkBox">
+								<p  v-text="checkSubject.length"></p>
+							</div>-->
 						</router-link>
 					</li>
 					<li class="mui-table-view-cell">
@@ -83,7 +92,11 @@ export default {
       		userInfo: null,
       		bigKnow: "",
       		smallKnow:　"",
-      		jsonsData: [],
+      		jsonsBigData: [],
+      		jsonsSmallData:[],
+      		jsonGetGrade: {},
+      		getArticleJson: {},
+      		diffcultyStr: "",
       		classInfo: [],
 			grade: [],
 			gradeId:1,
@@ -114,6 +127,7 @@ export default {
 			}
 			if(from.name == 'classList'){
 				this.SubjectClass = store.state.checkClass;
+				
 			}
 			if(from.name == 'articleList'){
 				this.checkSubject = store.state.checkSubject;
@@ -140,34 +154,132 @@ export default {
    		initGetData: function(pid){
    			var id=pid!=undefined?pid:0;
    			var _this=this;
-			var jsonGetGrade={
+			this.jsonGetGrade={
 				'PId': id,
 				'Code': 2,
 				'Grade': _this.gradeId,
 				'Term': 1,
 				'TOKEN': store.state.userInfo
 			};
-			this.$http.post("http://ksapi.keys-edu.com//api/common/GetKnowledgeList" , jsonGetGrade , {"emulateJSON":true}).then(function(res){
+			this.$http.post("http://ksapi.keys-edu.com//api/common/GetKnowledgeList" , _this.jsonGetGrade , {"emulateJSON":true}).then(function(res){
 				var gradeData = JSON.parse(res.body);
-				console.log(JSON.parse(gradeData.Data));
-				if(pid!=undefined){
-					_this.jsonsData=JSON.parse(gradeData.Data);
+				
+				if(pid==undefined){
+					_this.jsonsBigData=JSON.parse(gradeData.Data);
+				}else{
+					_this.jsonsSmallData=JSON.parse(gradeData.Data);
 				}
 			},function(err){
 				
 			});
 		},
-		pickerBig: function(){
+		picker: function(){
 			var _this = this;
 			var picker3 = new mui.PopPicker();
+//			var greadData = [];
+//			_this.grade.forEach(function(json, index){
+//				
+//				greadData.push(newData);
+//			})
+			var newData = [
+					{
+						text: '一二年级',
+						value: '1'
+						
+					},
+					{
+						text: '三年级',
+						value: '3'
+					}]
+			
+			picker3.setData(newData);
+			picker3.show(function(items) {
+				
+				_this.checkGrade = items[0].text;
+				_this.gradeId = items[0].value;
+				_this.initGetData();
+//				var checkGrade = items[0].text + '-' + items[1].text + '-' + items[2].text;
+//				if(_this.checkGrade != checkGrade){
+//					_this.checkGrade = checkGrade;
+//					//重置
+//					_this.checkSubject = [];
+//			   		_this. = [];
+//					store.commit('getCheckSubject', null);
+//					store.commit('getCheckClass', null);
+//				}
+				
+			});
+		},
+		pickerBig: function(){
+			var _this = this;
+			
 			var items={};
 			var newData=[];
-			for(item in _this.jsonsData){
-				console.log(item);
+			
+			for(var item in _this.jsonsBigData){
+				var itemsObj={};
+				itemsObj.value=_this.jsonsBigData[item].KnowledgePointId;
+				itemsObj.text=_this.jsonsBigData[item].Name;
+				
+				newData.push(itemsObj);
 			}
+			
+			var picker1 = new mui.PopPicker();
+			picker1.setData(newData);	
+			picker1.show(function(itemes){
+				_this.bigKnow=itemes[0].text;
+				_this.initGetData(itemes[0].value);
+				
+			});
 		},
 		pickerSmall: function(){
+		 	var _this=this;
+			var items={};
+			var newData=[];
 			
+			for(var item in _this.jsonsSmallData){
+				var itemsObj={};
+				itemsObj.value=_this.jsonsSmallData[item].KnowledgePointId;
+				itemsObj.text=_this.jsonsSmallData[item].Name;
+				
+				newData.push(itemsObj);
+			}
+			
+			this.getArticleJson=_this.jsonGetGrade;
+			this.getArticleJson.PageIndex=1;
+			this.getArticleJson.PageSize=10;
+			this.getArticleJson.Difficulty='';
+			this.getArticleJson.Author=store.state.accounts.UserAccountId;
+			delete this.getArticleJson.PId;
+			delete this.getArticleJson.Code;
+			var picker1 = new mui.PopPicker();
+			picker1.setData(newData);	
+			picker1.show(function(itemes){
+				_this.smallKnow=itemes[0].text;
+//				_this.initGetData(itemes[0].value);
+				_this.getArticleJson.KnowledgePointId=itemes[0].value;
+				store.commit('getPostArticelData',_this.getArticleJson);
+
+			});
+		},
+		pickerDifficult: function(){
+			var _this=this;
+			var picker2=new mui.PopPicker();
+			var diffData=[{
+				text: 'A',
+				value: 'A'
+			},{
+				text: 'B',
+				value: 'B'
+			},{
+				text: 'C',
+				value: 'C'
+			}];
+			picker2.setData(diffData)
+			picker2.show(function(item){
+				_this.diffcultyStr=item[0].value;
+				_this.getArticleJson.Difficulty=item[0].value;
+			});
 		},
    		getInfo: function(){
    			var _this =this;
@@ -198,7 +310,7 @@ export default {
 				OrderBy: 'Sort ASC'
 			}
 			this.$http.post("http://syapp.keys-edu.com/api/Subject/GetData", options).then(function(res){
-				console.log(res.body);
+
 				_this.textList.push.apply(_this.textList, res.body);
 				_this.page ++ ;
 				mui('#pullrefresh').pullRefresh().endPullupToRefresh((res.body.length === 0));
@@ -206,50 +318,14 @@ export default {
 				console.log(err);
 			})
 		},
-		picker: function(){
-			var _this = this;
-			var picker3 = new mui.PopPicker();
-//			var greadData = [];
-//			_this.grade.forEach(function(json, index){
-//				
-//				greadData.push(newData);
-//			})
-			var newData = [
-					{
-						text: '一二年级',
-						value: '1'
-						
-					},
-					{
-						text: '三年级',
-						value: '3'
-					}]
-			
-			picker3.setData(newData);
-			picker3.show(function(items) {
-				console.log(items);
-				_this.checkGrade = items[0].text;
-				_this.gradeId = items[0].value;
-				_this.initGetData();
-//				var checkGrade = items[0].text + '-' + items[1].text + '-' + items[2].text;
-//				if(_this.checkGrade != checkGrade){
-//					_this.checkGrade = checkGrade;
-//					//重置
-//					_this.checkSubject = [];
-//			   		_this.SubjectClass = [];
-//					store.commit('getCheckSubject', null);
-//					store.commit('getCheckClass', null);
-//				}
-				
-			});
-		},
+		
 		pickerTime: function(){
 			var _this = this;
 			var dtpicker = new mui.DtPicker({
 			    type: "date"
 			}) 
 			dtpicker.show(function(e) {
-			    console.log(e);
+			    
 			    var checkTime = e.text;
 			    if(_this.checkTime != checkTime){
 			    	_this.checkTime = checkTime;
@@ -323,7 +399,7 @@ export default {
 					}
 				})
 				_this.$http.post("http://syapp.keys-edu.com/api/TeacherTask/SendTask", options).then(function(res){
-					console.log(res.body);
+	
 					mui.alert('练习发送成功!', '启思教育', function() {
 						_this.checkSubject= [];
 						_this.SubjectClass= [];

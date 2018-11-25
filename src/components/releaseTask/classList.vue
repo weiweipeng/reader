@@ -11,8 +11,8 @@
 					<form class="mui-input-group">
 						<div class="mui-input-row mui-checkbox" v-for="(item, index) in classList">
 							<label class="list-cont">
-								<h4 class="mui-ellipsis " v-text="item.ClassName"></h4>
-								<h5 v-text="'所属年级：' + item.GradeName"></h5>
+								<h4 class="mui-ellipsis " v-text="item.name"></h4>
+								<h5 v-text="'所属年级：' + item.Id"></h5>
 							</label>
 							<input name="checkbox1" class="listCheckBox" :value="item" type="checkbox" v-model="checkClass">
 						</div>
@@ -42,10 +42,10 @@ export default {
 	},
    	activated: function() {
    		var _this = this;
-   		if(store.state.userInfo){
-   			this.classList = store.state.userInfo.classList;
+   		if(store.state.classes){
+   			this.classList = store.state.classes;
    		}
-   		
+   		console.log(this.classList);
    	},
    	mounted: function() {
    		mui('.mui-scroll-wrapper').scroll({
