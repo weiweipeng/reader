@@ -17,6 +17,33 @@
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
+						<router-link to="/classList" class="mui-navigate-right">
+							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
+							<span>选择班级</span>
+							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
+							<div class="checkBox">
+								<p v-for="sub in SubjectClass" v-text="sub.name"></p>
+							</div>
+						</router-link>
+					</li>
+					<li class="mui-table-view-cell">
+						<router-link to="/studentList" class="mui-navigate-right">
+							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
+							<span>选择学生</span>
+							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
+							<div class="checkBox">
+								<p v-for="sub in SubjectClass" v-text="sub.name"></p>
+							</div>
+						</router-link>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" @tap="pickerClassOrPerson">
+							<i class="iconfont icon-gengduoneirong"></i>
+							<span>选择练习类型</span>
+							<span class="mui-pull-right" v-text="practiceName"></span>
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerBig">
 							<i class="iconfont icon-gengduoneirong"></i>
 							<span>选择大知识点</span>
@@ -37,16 +64,7 @@
 							<span class="mui-pull-right" v-text="diffcultyStr"></span>
 						</a>
 					</li>
-					<li class="mui-table-view-cell">
-						<router-link to="/classList" class="mui-navigate-right">
-							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
-							<span>选择班级</span>
-							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
-							<div class="checkBox">
-								<p v-for="sub in SubjectClass" v-text="sub.name"></p>
-							</div>
-						</router-link>
-					</li>
+					
 					
 					<li class="mui-table-view-cell">
 						<router-link :to="{path:'/articleList',query: {checkGrade: checkGrade}}" class="mui-navigate-right">
@@ -97,6 +115,8 @@ export default {
       		jsonGetGrade: {},
       		getArticleJson: {},
       		diffcultyStr: "",
+      		classOrperson: true,
+      		practiceName: '',
       		classInfo: [],
 			grade: [],
 			gradeId:1,
@@ -119,7 +139,7 @@ export default {
 				this.checkSubject= [];
 				this.SubjectClass= [];
 				this.checkTime= '';
-				
+
 				this.userInfo = store.state.userInfo;
 	   			this.checkTime = this.getNowTime();
 //	   			this.initGetData();
@@ -176,11 +196,7 @@ export default {
 		picker: function(){
 			var _this = this;
 			var picker3 = new mui.PopPicker();
-//			var greadData = [];
-//			_this.grade.forEach(function(json, index){
-//				
-//				greadData.push(newData);
-//			})
+
 			var newData = [
 					{
 						text: '一二年级',
@@ -198,15 +214,32 @@ export default {
 				_this.checkGrade = items[0].text;
 				_this.gradeId = items[0].value;
 				_this.initGetData();
-//				var checkGrade = items[0].text + '-' + items[1].text + '-' + items[2].text;
-//				if(_this.checkGrade != checkGrade){
-//					_this.checkGrade = checkGrade;
-//					//重置
-//					_this.checkSubject = [];
-//			   		_this. = [];
-//					store.commit('getCheckSubject', null);
-//					store.commit('getCheckClass', null);
-//				}
+
+				
+			});
+		},
+		pickerClassOrPerson :function(){
+			var _this=this;
+			var picker4 = new mui.PopPicker();
+
+			var newData = [
+					{
+						text: '班级练习',
+						value: true
+						
+					},
+					{
+						text: '个人练习',
+						value: false
+					}]
+			
+			picker4.setData(newData);
+			picker4.show(function(items) {
+				
+				_this.practiceName = items[0].text;
+				_this.classOrperson = items[0].value;
+//				_this.initGetData();
+
 				
 			});
 		},
@@ -361,59 +394,74 @@ export default {
 				return false;
 			}else{
 				_this.disable = true;
-				var SubjectId = '',subjectScore = 0,wringtingScore = 0, subjectWords = 0;
-				_this.checkSubject.forEach(function(json, index){
-					if(_this.checkSubject.length === (index + 1)){
-						SubjectId += json.Id;
-						return false;
-					}else{
-						SubjectId += json.Id + '|';
-					}
-					if(json.wringtingScore){
-						wringtingScore += json.wringtingScore;
-					}
-					subjectScore += json.Fraction;
-					subjectWords += json.Words;
-				})
+//				var SubjectId = '',subjectScore = 0,wringtingScore = 0, subjectWords = 0;
+//				_this.checkSubject.forEach(function(json, index){
+//					if(_this.checkSubject.length === (index + 1)){
+//						SubjectId += json.Id;
+//						return false;
+//					}else{
+//						SubjectId += json.Id + '|';
+//					}
+//					if(json.wringtingScore){
+//						wringtingScore += json.wringtingScore;
+//					}
+//					subjectScore += json.Fraction;
+//					subjectWords += json.Words;
+//				})
+				var subjectStr='';
+				for(var j=0;j<_this.checkSubject.length;j++){
+					subjectStr+=_this.checkSubject[j]+',';
+				}
+				var classIdStr='';
+				for(var i=0;i<_this.SubjectClass.length;i++){
+					classIdStr+=_this.SubjectClass[i].Id+',';
+				}
 				var options = {
-					SubjectId: SubjectId,
-					Score: subjectScore + wringtingScore,
-					SubjectScore: subjectScore,
-					WritingSkillScore: wringtingScore,
-					Words: subjectWords,
-					TeacherId: _this.userInfo.UserId,
-					TeacherName: _this.userInfo.UerName,
+					Name: "班级练习",
+					SubjectId: subjectStr,
+					ClassesId: classIdStr,
+					SchoolId: store.state.schoolId,
+					TeacherName: store.state.accounts.UserAccountId,
+					TeacherId: store.state.TeacherId,
 					TaskType: 1,
-					WriteTime: _this.checkTime
+					WriteTime: _this.checkTime,
+					EndTime: 0
 				};
 				if(_this.timeOfUse != '默认不限制'){
 					options.EndTime = _this.timeOfUse;
 				}
-				options.ObjectID = '';
-				_this.SubjectClass.forEach(function(json, index){
-					if(_this.SubjectClass.length === (index + 1)){
-						options.ObjectID += json.ClassId
-						return false;
-					}else{
-						options.ObjectID += json.ClassId + '|';
-					}
-				})
-				_this.$http.post("http://syapp.keys-edu.com/api/TeacherTask/SendTask", options).then(function(res){
-	
-					mui.alert('练习发送成功!', '启思教育', function() {
-						_this.checkSubject= [];
-						_this.SubjectClass= [];
-						_this.checkTime= _this.getNowTime();
-						_this.timeOfUse= '默认不限制';
-						store.commit('getCheckSubject', null);
-						store.commit('getCheckClass', null);
+//				options.ObjectID = '';
+//				_this.SubjectClass.forEach(function(json, index){
+//					if(_this.SubjectClass.length === (index + 1)){
+//						options.ObjectID += json.ClassId
+//						return false;
+//					}else{
+//						options.ObjectID += json.ClassId + '|';
+//					}
+//				})
+console.log(_this.SubjectClass)
+//				for(var i=0;i<_this.SubjectClass.length;i++){
+//					options.ClassesId=_this.SubjectClass[i].Id;
+					_this.$http.post("http://ksapi.keys-edu.com///api/task/insertteachertask", options, {"emulateJSON":true}).then(function(res){
 						_this.disable = false;
-					});
-				}, function(err){
-					_this.disable = false;
-					mui.alert('练习发送失败!', '启思教育');
-					console.log(err);
-				})
+						mui.alert('练习发送成功!', '启思教育', function() {
+							_this.checkSubject= [];
+							_this.SubjectClass= [];
+							_this.checkTime= _this.getNowTime();
+							_this.timeOfUse= '默认不限制';
+							store.commit('getCheckSubject', null);
+							store.commit('getCheckClass', null);
+							
+						});
+						
+					}, function(err){
+						_this.disable = false;
+						mui.alert('练习发送失败!', '启思教育');
+						console.log(err);
+					})
+//				}
+				
+				
 			}
 		},
 		getNowTime: function(){

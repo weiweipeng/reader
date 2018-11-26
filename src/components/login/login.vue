@@ -55,7 +55,7 @@ export default {
 					var changeData = {};
 					store.commit('getAccountDatas',options);
 					var getdata=JSON.parse(jsonParseData.Data);
-					console.log(getdata);
+					
 					changeData.BuyType=getdata.BuyType;
 					changeData.ClassId=getdata.ClassId;
 					changeData.CourseId=getdata.CourseId;
@@ -66,29 +66,30 @@ export default {
 					changeData.UserAccountId=getdata.UserAccountId;
 					changeData.UserAccountSchoolId=getdata.UserAccountSchoolId;
 					changeData.UserToken=getdata.UserToken;
-					var classArr=getdata.ClassId.split(',');
-					console.log(classArr[classArr.length-1]);
-					var firstClass={
-						"name":classArr[classArr.length-1],
-						"Id":classArr[0]
-					}
+					var classArr=getdata.ClassId.split('|');
+//					console.log(classArr[classArr.length-1]);
+//					var firstClass={
+//						"name":classArr[classArr.length-1],
+//						"Id":classArr[0]
+//					}
 					var new_classArr=[];
 					var repeatBool=true;;
-					new_classArr.push(firstClass);
-					for(var i=1;i<classArr.length-1;i++){
+//					new_classArr.push(firstClass);
+					for(var i=0;i<classArr.length;i++){
 						var followArr={};
-						var brief=classArr[i].split('|');
+						var brief=classArr[i].split(',');
+						repeatBool=true;
 						for(var j=0;j<new_classArr.length;j++){
-							if(new_classArr[j].Id == brief[1]){
+							if(new_classArr[j].Id == brief[0]){
 								
 								repeatBool=false;
 							}
 						}
 						if(repeatBool){
-							followArr.name=brief[0];
-							followArr.Id=brief[1];
+							followArr.name=brief[1];
+							followArr.Id=brief[0];
 							new_classArr.push(followArr);
-							repeatBool=true;
+							
 						}
 						
 						
@@ -108,9 +109,12 @@ export default {
 							accountPostData.Sign=accountData.Sign;
 							accountPostData.Class=accountData.ClassId;
 							accountPostData.Grade=accountData.GradeId;
+							store.commit('getSchoolId',accountData.UserAccountSchoolId);
+							store.commit('getTeacherId',accountData.UserAccountId);
+							console.log(accountData);
 							_this.$http.post("http://ksapi.keys-edu.com///api/UserToken/GetUserTokenData" , accountPostData , {"emulateJSON":true}).then(function(res){
 								var jsonUserSign = JSON.parse(res.body);
-								console.log(jsonUserSign);
+								
 								store.commit('getUserInfo',jsonUserSign.Data);
 								mui.toast(jsonUserSign.Message);
 								_this.$router.push({path: '/releaseTask'});
@@ -118,8 +122,7 @@ export default {
 //								mui.alert();
 							});
 						}
-//						jsonAccountData=JSON.parse(jsonAccountData);
-						console.log(jsonAccountData);
+
 					},function(err){
 						console.log(err);
 					});

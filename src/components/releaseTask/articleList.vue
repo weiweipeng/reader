@@ -151,7 +151,7 @@ export default {
 				_this.textList.push.apply(_this.textList, new_arr);
 				_this.page ++ ;
 				
-				var noMore = maindata < _this.pSize ? true : false;
+				var noMore = maindata.length < _this.pSize ? true : false;
 				//复位下拉 或者上拉状态
 				//type 说明： 0 表示下拉刷新 1 表示上啦加载
    				if(type === 0){

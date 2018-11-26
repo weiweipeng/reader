@@ -10,6 +10,8 @@ const state = {
     checkClass: [],
     accounts: {},
     postArticelData: {},
+    schoolId:'',
+    techerId:'',
     grade: null,
     classes: []
 }
@@ -43,6 +45,12 @@ const mutations={
     },
     getPostArticelData: function(state,data){
     	state.postArticelData=data;
+    },
+    getSchoolId: function(state, data){
+    	state.schoolId=data;
+    },
+    getTeacherId: function(state ,data){
+    	state.TeacherId=data;
     }
 }
 

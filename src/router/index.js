@@ -7,7 +7,7 @@ import classList from '@/components/releaseTask/classList'
 import articleList from '@/components/releaseTask/articleList'
 import taskList from '@/components/taskList/taskList'
 import taskDetail from '@/components/taskList/taskDetail'
-
+import studentList from '@/components/releaseTask/studentList'
 
 
 Vue.use(Router)
@@ -28,6 +28,11 @@ export default new Router({
    		name: 'releaseTask',
   		path: '/releaseTask',
   		component: releaseTask
+	  },
+	  {
+	  	name: 'studentList',
+	  	path: '/studentList',
+	  	component: studentList
 	  },
 	  {
    		name: 'classList',
