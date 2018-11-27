@@ -17,6 +17,13 @@
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" @tap="pickerClassOrPerson">
+							<i class="iconfont icon-gengduoneirong"></i>
+							<span>选择练习类型</span>
+							<span class="mui-pull-right" v-text="practiceName"></span>
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
 						<router-link to="/classList" class="mui-navigate-right">
 							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
 							<span>选择班级</span>
@@ -26,23 +33,18 @@
 							</div>
 						</router-link>
 					</li>
-					<li class="mui-table-view-cell">
+					<li class="mui-table-view-cell" v-show='classOrperson'>
 						<router-link to="/studentList" class="mui-navigate-right">
 							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
 							<span>选择学生</span>
-							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
-							<div class="checkBox">
-								<p v-for="sub in SubjectClass" v-text="sub.name"></p>
-							</div>
+							<span class="mui-pull-right" v-if="checkStu.length === 0">未选择</span>
+							<span class="mui-pull-right" v-else v-text="checkStu.length"></span>
+							<!--<div class="checkBox">
+								<p v-for="sut in checkStu" v-text="sut.stuName"></p>
+							</div>-->
 						</router-link>
 					</li>
-					<li class="mui-table-view-cell">
-						<a class="mui-navigate-right" @tap="pickerClassOrPerson">
-							<i class="iconfont icon-gengduoneirong"></i>
-							<span>选择练习类型</span>
-							<span class="mui-pull-right" v-text="practiceName"></span>
-						</a>
-					</li>
+					
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerBig">
 							<i class="iconfont icon-gengduoneirong"></i>
@@ -67,7 +69,7 @@
 					
 					
 					<li class="mui-table-view-cell">
-						<router-link :to="{path:'/articleList',query: {checkGrade: checkGrade}}" class="mui-navigate-right">
+						<router-link :to="{path:'/articleList',query: {checkGrade: gradeId}}" class="mui-navigate-right">
 							<i class="iconfont icon-svgwrite"></i>
 							<span>选择篇章</span>
 							<span class="mui-pull-right" v-if="checkSubject.length === 0">未选择</span>
@@ -115,17 +117,19 @@ export default {
       		jsonGetGrade: {},
       		getArticleJson: {},
       		diffcultyStr: "",
-      		classOrperson: true,
+      		classOrperson: false,
       		practiceName: '',
+      		checkStu: [],
       		classInfo: [],
 			grade: [],
-			gradeId:1,
+			gradeId: '',
 			checkGrade: '',
 			textList: [],
 			checkSubject: [],
 			SubjectClass: [],
 			checkTime: '',
 			timeOfUse: '默认不限制',
+			endTime: 0,
 			disable: false
       	}
    	},
@@ -147,10 +151,14 @@ export default {
 			}
 			if(from.name == 'classList'){
 				this.SubjectClass = store.state.checkClass;
-				
+			
 			}
 			if(from.name == 'articleList'){
 				this.checkSubject = store.state.checkSubject;
+			}
+			if(from.name == 'studentList'){
+				this.checkStu=store.state.checkStu;
+			
 			}
 		}
 	},
@@ -163,7 +171,7 @@ export default {
    		if(store.state.userInfo){
    			this.userInfo = store.state.userInfo;
    			this.checkTime = this.getNowTime();
-// 			this.getInfo();
+
    		}
    	},
    	mounted: function() {
@@ -225,12 +233,12 @@ export default {
 			var newData = [
 					{
 						text: '班级练习',
-						value: true
+						value: false
 						
 					},
 					{
 						text: '个人练习',
-						value: false
+						value: true
 					}]
 			
 			picker4.setData(newData);
@@ -238,6 +246,7 @@ export default {
 				
 				_this.practiceName = items[0].text;
 				_this.classOrperson = items[0].value;
+				store.commit('studentListShow',_this.classOrperson);
 //				_this.initGetData();
 
 				
@@ -314,43 +323,43 @@ export default {
 				_this.getArticleJson.Difficulty=item[0].value;
 			});
 		},
-   		getInfo: function(){
-   			var _this =this;
-   			var classInfo = _this.userInfo.classList;
-   			classInfo.forEach(function(json, index){
-				if(_this.grade.length === 0){
-					_this.grade.push(json.GradeName);
-				}else{
-					_this.grade.forEach(function(item, num){
-						if(item != json.GradeName){
-							_this.grade.push(json.GradeName);
-						}
-					})
-				}
-			})
-   			
-   			store.commit('getGrade', _this.grade);
-			_this.checkGrade = _this.grade[0]+'-上学期-U1';
-   		},
-   		getData: function(){
-			var _this = this;
-			var checkGrade = _this.checkGrade.split('-');
-			var options = {
-				Grade: checkGrade[0],
-				Term: checkGrade[1],
-				Pagesize: _this.pSize,
-				Pagination: _this.page,
-				OrderBy: 'Sort ASC'
-			}
-			this.$http.post("http://syapp.keys-edu.com/api/Subject/GetData", options).then(function(res){
-
-				_this.textList.push.apply(_this.textList, res.body);
-				_this.page ++ ;
-				mui('#pullrefresh').pullRefresh().endPullupToRefresh((res.body.length === 0));
-			}, function(err){
-				console.log(err);
-			})
-		},
+// 		getInfo: function(){
+// 			var _this =this;
+// 			var classInfo = _this.userInfo.classList;
+// 			classInfo.forEach(function(json, index){
+//				if(_this.grade.length === 0){
+//					_this.grade.push(json.GradeName);
+//				}else{
+//					_this.grade.forEach(function(item, num){
+//						if(item != json.GradeName){
+//							_this.grade.push(json.GradeName);
+//						}
+//					})
+//				}
+//			})
+// 			
+// 			store.commit('getGrade', _this.grade);
+//			_this.checkGrade = _this.grade[0]+'-上学期-U1';
+// 		},
+// 		getData: function(){
+//			var _this = this;
+//			var checkGrade = _this.checkGrade.split('-');
+//			var options = {
+//				Grade: checkGrade[0],
+//				Term: checkGrade[1],
+//				Pagesize: _this.pSize,
+//				Pagination: _this.page,
+//				OrderBy: 'Sort ASC'
+//			}
+//			this.$http.post("http://syapp.keys-edu.com/api/Subject/GetData", options).then(function(res){
+//
+//				_this.textList.push.apply(_this.textList, res.body);
+//				_this.page ++ ;
+//				mui('#pullrefresh').pullRefresh().endPullupToRefresh((res.body.length === 0));
+//			}, function(err){
+//				console.log(err);
+//			})
+//		},
 		
 		pickerTime: function(){
 			var _this = this;
@@ -372,6 +381,8 @@ export default {
 			mui.prompt('', '请选择学生做题用时（单位/分钟）', '启思教育', btnArray, function(e) {
 				if (e.index == 1) {
 					_this.timeOfUse = e.value + '分钟';
+					_this.endTime = e.value*60;
+					console.log(_this.endTime)
 				}
 			},'div');
 		},
@@ -394,41 +405,53 @@ export default {
 				return false;
 			}else{
 				_this.disable = true;
-//				var SubjectId = '',subjectScore = 0,wringtingScore = 0, subjectWords = 0;
-//				_this.checkSubject.forEach(function(json, index){
-//					if(_this.checkSubject.length === (index + 1)){
-//						SubjectId += json.Id;
-//						return false;
-//					}else{
-//						SubjectId += json.Id + '|';
-//					}
-//					if(json.wringtingScore){
-//						wringtingScore += json.wringtingScore;
-//					}
-//					subjectScore += json.Fraction;
-//					subjectWords += json.Words;
-//				})
+
 				var subjectStr='';
 				for(var j=0;j<_this.checkSubject.length;j++){
 					subjectStr+=_this.checkSubject[j]+',';
 				}
 				var classIdStr='';
+				
 				for(var i=0;i<_this.SubjectClass.length;i++){
 					classIdStr+=_this.SubjectClass[i].Id+',';
 				}
-				var options = {
-					Name: "班级练习",
-					SubjectId: subjectStr,
-					ClassesId: classIdStr,
-					SchoolId: store.state.schoolId,
-					TeacherName: store.state.accounts.UserAccountId,
-					TeacherId: store.state.TeacherId,
-					TaskType: 1,
-					WriteTime: _this.checkTime,
-					EndTime: 0
-				};
+				console.log(_this.endTime);
+				if(_this.classOrperson){
+					var stuStr='';
+					for(var k=0;k<_this.checkStu.length;k++){
+						stuStr+=_this.checkStu[k].sutID+',';
+					}
+
+					var options = {
+						Name: "个人练习",
+						SubjectId: subjectStr,
+						ClassesId: classIdStr,
+						SchoolId: store.state.schoolId,
+						TeacherName: store.state.accounts.UserAccountId,
+						TeacherId: store.state.TeacherId,
+						
+						StudentId: stuStr,
+						WriteTime: _this.checkTime,
+						EndTime: _this.endTime,
+						TOKEN: store.state.userInfo
+					};
+				}else{
+					
+					var options = {
+						Name: "班级练习",
+						SubjectId: subjectStr,
+						ClassesId: classIdStr,
+						SchoolId: store.state.schoolId,
+						TeacherName: store.state.accounts.UserAccountId,
+						TeacherId: store.state.TeacherId,
+						
+						TOKEN: store.state.userInfo,
+						WriteTime: _this.checkTime,
+						EndTime: _this.endTime
+					};
+				}
 				if(_this.timeOfUse != '默认不限制'){
-					options.EndTime = _this.timeOfUse;
+					options.EndTime = _this.endTime;
 				}
 //				options.ObjectID = '';
 //				_this.SubjectClass.forEach(function(json, index){
@@ -439,7 +462,7 @@ export default {
 //						options.ObjectID += json.ClassId + '|';
 //					}
 //				})
-console.log(_this.SubjectClass)
+//console.log(_this.SubjectClass)
 //				for(var i=0;i<_this.SubjectClass.length;i++){
 //					options.ClassesId=_this.SubjectClass[i].Id;
 					_this.$http.post("http://ksapi.keys-edu.com///api/task/insertteachertask", options, {"emulateJSON":true}).then(function(res){

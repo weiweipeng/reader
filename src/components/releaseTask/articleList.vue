@@ -58,6 +58,7 @@ export default {
    	activated: function() {
    		var deceleration = mui.os.ios?0.003:0.0009;
    		this.postData=store.state.postArticelData;
+   		store.commit('getCheckSubject', []);
 		mui('.mui-scroll-wrapper').scroll({bounce: false, deceleration:deceleration});
    		if(this.$route.query.checkGrade){
 			//判断是否是第一次加载
@@ -138,6 +139,10 @@ export default {
 
 				
 				var new_arr=[];
+				console.log(maindata);
+				if(maindata==null){
+					return ;
+				}
 				for(var i=0;i<maindata.length;i++){
 					var goods={};
 					goods.SubjectId=maindata[i].SubjectId;

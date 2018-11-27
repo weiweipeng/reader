@@ -31,7 +31,9 @@ export default {
 			disable: false
       	}
    	},
+
    	activated: function(){
+   		this.disable=false;
    		store.commit('getUserInfo', null);
    	},
    	mounted: function() {
@@ -116,10 +118,10 @@ export default {
 								var jsonUserSign = JSON.parse(res.body);
 								
 								store.commit('getUserInfo',jsonUserSign.Data);
-								mui.toast(jsonUserSign.Message);
+//								mui.toast(jsonUserSign.Message);
 								_this.$router.push({path: '/releaseTask'});
 							},function(err){
-//								mui.alert();
+//								mui.toast(jsonUserSign.Message);
 							});
 						}
 

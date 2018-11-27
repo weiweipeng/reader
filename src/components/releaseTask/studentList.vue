@@ -10,7 +10,7 @@
 					<form class="mui-input-group">
 						<div class="mui-input-row mui-checkbox" v-for="(item, index) in stuList">
 							<label class="list-cont">
-								<h4 class="mui-ellipsis " v-text="item.name"></h4>
+								<h4 class="mui-ellipsis " v-text="item.stuName"></h4>
 								<!--<h5 v-text="'所属年级：' + item.Id"></h5>-->
 							</label>
 							<input name="checkbox1" class="listCheckBox" :value="item" type="checkbox" v-model="checkStu">
@@ -37,19 +37,26 @@
 			}
 		},
 		watch:{
-			
+			checkStu: function(val, oldval){
+				store.commit('getStudentList', val);
+			}
 		},
 		activated: function(){
 			this.getData();
 		},
 		methods: {
 			getData: function(){
+				var _this=this;
 				var param={
 					'classid':'43'
 				}
 				var timestamp2 = (new Date()).valueOf()
 				this.$http.get('http://loginapi.keys-edu.com/api/UserComIface/getClassStuList?classid=43&_:'+timestamp2, {"emulateJSON":true}).then(function(res){
-					console.log(JSON.parse(res.body));
+//					console.log(JSON.parse(res.body));
+					var stuData=JSON.parse(JSON.parse(res.body).Data)[0].stuList;
+					_this.stuList=stuData;
+//					store.commit('getStudentList',);
+//					console.log(stuData);
 				});
 			},
 			goBack: function(){

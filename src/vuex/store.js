@@ -12,6 +12,8 @@ const state = {
     postArticelData: {},
     schoolId:'',
     techerId:'',
+    classOrPerson:false,//判断是班级还是个人任务
+    checkStu: [],
     grade: null,
     classes: []
 }
@@ -21,6 +23,9 @@ const mutations={
     },
     tabListShow: function(state){
         state.tabListShow = true;
+    },
+    studentListShow: function(state,data){
+    	state.classOrPerson=data;
     },
     getUserInfo: function(state, data){
         state.userInfo = data;
@@ -51,6 +56,9 @@ const mutations={
     },
     getTeacherId: function(state ,data){
     	state.TeacherId=data;
+    },
+    getStudentList: function(state, data){
+    	state.checkStu=data;
     }
 }
 
