@@ -20,8 +20,9 @@
 			<div id="taskScroll" class="mui-scroll">
 				<ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
 			        <li class="mui-table-view-cell" v-for="item in taskList">
-			            <a @tap="goHref(item.Id)" class="mui-navigate-right">
+			            <a @tap="goHref(item.SubjectId)" class="mui-navigate-right">
 			            	<h4 class="mui-ellipsis" v-text="item.Name"></h4>
+			            	<span v-text="item.CreatorTime"></span>
 			            </a>
 			        </li>
 			    </ul>
@@ -44,7 +45,7 @@ export default {
       		checkClassId: null,
       		classList: [],
       		taskList: [],
-      		pSize: 20,
+      		pSize: 10,
 			page: 1,
 			self: null
       	}
@@ -52,19 +53,24 @@ export default {
    	watch: {
 		$route(to, from) {
 			if(store.state.userInfo && from.name == 'releaseTask'){
-				this.checkClassId = null;
+				this.checkClassId = '';
 				this.classList = [];
 				this.taskList = [];
 				this.page = 1;
 				
-				this.init();
+
 				this.pullRefresh();
 			}
+//			if(store.state.userInfo && from.name == 'taskDetail'){
+//				this.checkClassId = store.state.classId;
+//				console.log(store.state.classId);
+//				
+//			}
 		}
 	},
 	created: function(){
 		if(store.state.userInfo){
-			this.init();
+
 			this.pullRefresh();
 		}
 			
@@ -74,38 +80,20 @@ export default {
 		mui('.mui-scroll-wrapper').scroll({bounce: false, deceleration:deceleration});
    	},
    	activated: function(){
-   		
+   		this.classList = store.state.classes;
    	},
    	methods: {
-   		init: function(){
-   			var _this = this, grade = store.state.grade, classList = store.state.userInfo.classList;
-	   		grade.forEach(function(json, index){
-	   			var className = {
-		   				text: json,
-		   				children: []
-		   			}
-	   			classList.forEach(function(item, num){
-	   				var ClassName = {
-	   					text: item.ClassName,
-	   					value: item.ClassId
-	   				}
-	   				if(json == item.GradeName){
-	   					className.children.push(ClassName);
-	   				}
-	   					
-	   			})
-	   			_this.classList.push(className);
-	   		})
-	   		console.log(classList)
-	   		_this.checkClass = _this.classList[0].text + '  -  ' + _this.classList[0].children[0].text;
-	   		_this.checkClassId = _this.classList[0].children[0].value;
-   		},
+
    		pullRefresh: function(){
    			var _this = this;
    			
 			if(_this.self){
    				_this.self.refresh(true);//重置上拉加载
    			}
+//			if(store.state.classId){
+//				_this.checkClassId = store.state.classId;
+//			}
+//			console.log(store.state.classId);
    			mui.ready(function() {
 				mui('#taskScroll').pullToRefresh({
 					down: {
@@ -114,12 +102,14 @@ export default {
 							//刷新先清空页数和数据
 							_this.page = 1;
 							_this.taskList = [];
+//							console.log(_this.checkClassId);
 							var options = {
-								TeacherId: store.state.userInfo.UserId,
+								TeacherId: store.state.TeacherId,
+								SchoolId: store.state.schoolId,
 								ClassId: _this.checkClassId,
-								Pagesize: _this.pSize,
-								Pagination: 1,
-								OrderBy: 'CreatorTime DESC'
+								PageSize: _this.pSize,
+								PageIndex: 1,
+								TOKEN: store.state.userInfo
 							}
 							self.refresh(true);//重置上拉加载	
 							_this.getData(options, self, 0);
@@ -130,11 +120,12 @@ export default {
 						callback: function() {
 							var self = this;
 							var options = {
-								TeacherId: store.state.userInfo.UserId,
+								TeacherId: store.state.TeacherId,
+								SchoolId: store.state.schoolId,
 								ClassId: _this.checkClassId,
-								Pagesize: _this.pSize,
-								Pagination: _this.page,
-								OrderBy: 'CreatorTime DESC'
+								PageSize: _this.pSize,
+								PageIndex: _this.page,
+								TOKEN: store.state.userInfo
 							}
 							_this.self = self;
 							//data表示参数，index表示第一个选项卡， self表示当前dom节点，1 表示上拉加载
@@ -146,12 +137,22 @@ export default {
    		},
    		getData: function(data, self, type){
 			var _this = this;
-			_this.$http.post("http://syapp.keys-edu.com/api/TeacherTask/TeacherTaskList", data).then(function(res){
-				console.log(res.body);
-				_this.taskList.push.apply(_this.taskList, res.body);
+			_this.$http.post("http://ksapi.keys-edu.com///api/task/GetTeacherTaskPage", data,{"emulateJSON":true}).then(function(res){
+
+				var jsonData=JSON.parse(res.body);
+				var datas=JSON.parse(jsonData.Data)
+
+				if(datas != null){
+					for(var i=0;i<datas.length;i++){
+	
+						datas[i].CreatorTime = _this.ChangeDateFormat(datas[i].CreatorTime);
+					}
+				}
+				
+				_this.taskList.push.apply(_this.taskList, datas);
 				_this.page ++ ;
 				
-				var noMore = res.body.length < _this.pSize ? true : false;
+				var noMore = datas.length < _this.pSize ? true : false;
 				//复位下拉 或者上拉状态
 				//type 说明： 0 表示下拉刷新 1 表示上啦加载
    				if(type === 0){
@@ -169,26 +170,43 @@ export default {
 				console.log(err);
 			})
 		},
+		ChangeDateFormat: function(cellval){
+			var date = new Date(parseInt(cellval.replace("/Date(", "").replace(")/", ""), 10));
+		    //getMonth()从0开始算
+		    var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+		    var currentDate = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+		    return date.getFullYear() + "-" + month + "-" + currentDate;
+		},
    		picker: function(){
    			var _this = this;
-			var picker2 = new mui.PopPicker({
-				layer: 2
-			});
-			picker2.setData(_this.classList);
-			picker2.show(function(items) {
-				var checkClass = items[0].text + '  -  ' + items[1].text;
-				if(_this.checkClass != checkClass){
-					_this.checkClass = checkClass;
-					_this.checkClassId = items[1].value;
-					//初始化
+			var picker5 = new mui.PopPicker();
+			var classListData=[];
+			for(var i=0;i<_this.classList.length;i++){
+				var classObj={
+					text: _this.classList[i].name,
+					value: _this.classList[i].Id
+				};
+				classListData.push(classObj);
+			}
+			picker5.setData(classListData);
+			picker5.show(function(items) {
+				
+				
+				console.log(items);
+//				var checkClass = items[0].text + '  -  ' + items[1].text;
+				if(_this.checkClass != items[0].text){
+					_this.checkClass = items[0].text;
+					_this.checkClassId=items[0].value;
+//					store.commit('getClassId',items[0].value);
+//					console.log(store.state.classId);
+//					//初始化
 					_this.taskList = [];
-					_this.page = 1;
-					
+					_this.page = 1;			
 					_this.pullRefresh();
-					//mui bug,暂时解决方法
-//					setTimeout(function(){
-//						mui('#taskScroll').pullRefresh().scrollTo(0, 0, 100);
-//					});
+//					//mui bug,暂时解决方法
+////					setTimeout(function(){
+////						mui('#taskScroll').pullRefresh().scrollTo(0, 0, 100);
+////					});
 				}
 				
 			});
@@ -226,6 +244,7 @@ export default {
 		top: 106px;
 		bottom: 1.3rem;
 	}
+	
 	.mui-table-view-cell{
 		padding: .3rem .4rem;
 		font-size: .36rem;

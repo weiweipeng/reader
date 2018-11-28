@@ -132,7 +132,7 @@ export default {
    		},
    		getData: function(data, self, type){
 			var _this = this;
-			this.$http.post("http://ksapi.keys-edu.com///api/subject/getsubjectlistbykid", store.state.postArticelData, {"emulateJSON":true}).then(function(res){
+			this.$http.post("http://ksapi.keys-edu.com///api/subject/getsubjectlistbykid", data, {"emulateJSON":true}).then(function(res){
 				
 				var datas=JSON.parse(res.body);
 				var maindata=JSON.parse(datas.Data);

@@ -47,13 +47,24 @@
 		methods: {
 			getData: function(){
 				var _this=this;
+				console.log();
+				var classIdList=store.state.checkClass;
+//				var classIsStr='';
+//				for(var i=0;i<classIdList.length;i++){
+//					classIdStr+=classIdList[i]+',';
+//				}
+				console.log(classIdList);
+				if(classIdList.length == 0){
+					mui.toast("请先选择班级！");
+				}
 				var param={
-					'classid':'43'
+					'classid': classIdList[0].Id
 				}
 				var timestamp2 = (new Date()).valueOf()
-				this.$http.get('http://loginapi.keys-edu.com/api/UserComIface/getClassStuList?classid=43&_:'+timestamp2, {"emulateJSON":true}).then(function(res){
+				this.$http.get('http://loginapi.keys-edu.com/api/UserComIface/getClassStuList?classid='+classIdList[0].Id+'&_:'+timestamp2, {"emulateJSON":true}).then(function(res){
 //					console.log(JSON.parse(res.body));
 					var stuData=JSON.parse(JSON.parse(res.body).Data)[0].stuList;
+					console.log(stuData);
 					_this.stuList=stuData;
 //					store.commit('getStudentList',);
 //					console.log(stuData);

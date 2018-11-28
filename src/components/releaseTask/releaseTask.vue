@@ -117,12 +117,13 @@ export default {
       		jsonGetGrade: {},
       		getArticleJson: {},
       		diffcultyStr: "",
-      		classOrperson: false,
+      		classOrperson: null,
       		practiceName: '',
       		checkStu: [],
       		classInfo: [],
 			grade: [],
 			gradeId: '',
+			Pid: '',
 			checkGrade: '',
 			textList: [],
 			checkSubject: [],
@@ -244,9 +245,20 @@ export default {
 			picker4.setData(newData);
 			picker4.show(function(items) {
 				
-				_this.practiceName = items[0].text;
-				_this.classOrperson = items[0].value;
-				store.commit('studentListShow',_this.classOrperson);
+				if(_this.classOrperson == null){
+					_this.practiceName = items[0].text;
+					_this.classOrperson = items[0].value;
+					store.commit('studentListShow',_this.classOrperson);
+					store.commit('getCheckClass',[]);
+				}
+				if(_this.classOrperson != items[0].value){
+					_this.practiceName = items[0].text;
+					_this.classOrperson = items[0].value;
+					store.commit('studentListShow',_this.classOrperson);
+					store.commit('getCheckClass',[]);
+					_this.SubjectClass=[];
+				}
+				
 //				_this.initGetData();
 
 				

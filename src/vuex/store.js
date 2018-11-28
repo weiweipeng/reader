@@ -14,6 +14,7 @@ const state = {
     techerId:'',
     classOrPerson:false,//判断是班级还是个人任务
     checkStu: [],
+   
     grade: null,
     classes: []
 }

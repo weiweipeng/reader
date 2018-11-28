@@ -53,14 +53,13 @@ export default {
       	return {
       		classList: [],
 			checkClass: [],
-			tarskTypes:0
+			tarskTypes:0,
+			classOrPerson: null
       	}
    	},
    	watch:{
 		checkClass: function(val, oldval){
-			console.log(val)
-			console.log(this.classList);
-			console.log(this.checkClass);
+			
 			if(store.state.classOrPerson){
 				var arr=[];
 				arr.push(val);
@@ -76,10 +75,17 @@ export default {
    		if(store.state.classes){
    			this.classList = store.state.classes;
    		}
-   		this.checkClass=[];
-   		console.log(1111);
-   		console.log(store.state.classOrPerson);
-   		console.log(this.checkClass);
+   		
+// 		console.log(1111);
+		if(_this.classOrperson == null){
+			_this.classOrperson = store.state.classOrPerson;
+		}else if(_this.classOrperson != store.state.classOrPerson){
+			_this.classOrperson = store.state.classOrPerson;
+			this.checkClass=[];
+		}
+		
+// 		console.log(store.state.classOrPerson);
+// 		console.log(this.checkClass);
    		if(store.state.classOrPerson){
    			_this.tarskTypes=1;
    		}else{
