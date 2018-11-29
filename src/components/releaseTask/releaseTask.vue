@@ -18,14 +18,14 @@
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerClassOrPerson">
-							<i class="iconfont icon-gengduoneirong"></i>
+							<i class="iconfont icon-anjian"></i>
 							<span>选择练习类型</span>
 							<span class="mui-pull-right" v-text="practiceName"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<router-link to="/classList" class="mui-navigate-right">
-							<i class="iconfont icon-weibiaoti-_huabanfuben"></i>
+							<i class="iconfont icon-gerenxinxi_suozaibanji"></i>
 							<span>选择班级</span>
 							<span class="mui-pull-right" v-if="SubjectClass.length === 0">未选择</span>
 							<div class="checkBox">
@@ -47,21 +47,21 @@
 					
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerBig">
-							<i class="iconfont icon-gengduoneirong"></i>
+							<i class="iconfont icon-zhishi1"></i>
 							<span>选择大知识点</span>
 							<span class="mui-pull-right" v-text="bigKnow"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerSmall">
-							<i class="iconfont icon-gengduoneirong"></i>
+							<i class="iconfont icon-zhishi"></i>
 							<span>选择小知识点</span>
 							<span class="mui-pull-right" v-text="smallKnow"></span>
 						</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right" @tap="pickerDifficult">
-							<i class="iconfont icon-gengduoneirong"></i>
+							<i class="iconfont icon-dabianyanjiunandian"></i>
 							<span>选择难度</span>
 							<span class="mui-pull-right" v-text="diffcultyStr"></span>
 						</a>
@@ -69,7 +69,7 @@
 					
 					
 					<li class="mui-table-view-cell">
-						<router-link :to="{path:'/articleList',query: {checkGrade: gradeId}}" class="mui-navigate-right">
+						<router-link :to="{path:'/articleList',query: {checkGrade: KnowledgeId,diffcult: diffcultyStr}}" class="mui-navigate-right">
 							<i class="iconfont icon-svgwrite"></i>
 							<span>选择篇章</span>
 							<span class="mui-pull-right" v-if="checkSubject.length === 0">未选择</span>
@@ -110,24 +110,25 @@ export default {
   	data: function(){
       	return {
       		userInfo: null,
-      		bigKnow: "",
-      		smallKnow:　"",
+      		bigKnow: "未选择",
+      		smallKnow:　"未选择",
       		jsonsBigData: [],
       		jsonsSmallData:[],
       		jsonGetGrade: {},
       		getArticleJson: {},
-      		diffcultyStr: "",
+      		diffcultyStr: "未选择",
       		classOrperson: null,
-      		practiceName: '',
+      		practiceName: '未选择',
       		checkStu: [],
       		classInfo: [],
 			grade: [],
 			gradeId: '',
 			Pid: '',
-			checkGrade: '',
+			checkGrade: '未选择',
 			textList: [],
 			checkSubject: [],
 			SubjectClass: [],
+			KnowledgeId: '',
 			checkTime: '',
 			timeOfUse: '默认不限制',
 			endTime: 0,
@@ -147,12 +148,13 @@ export default {
 
 				this.userInfo = store.state.userInfo;
 	   			this.checkTime = this.getNowTime();
-//	   			this.initGetData();
-//	   			this.getInfo();
+
 			}
 			if(from.name == 'classList'){
 				this.SubjectClass = store.state.checkClass;
-			
+				store.commit('getStudentList', []);
+				this.checkStu=[];
+
 			}
 			if(from.name == 'articleList'){
 				this.checkSubject = store.state.checkSubject;
@@ -177,6 +179,8 @@ export default {
    	},
    	mounted: function() {
    		//初始化滚动组件
+   		mui.init();
+   		new mui.PopPicker();
    		mui('.mui-scroll-wrapper').scroll({deceleration:0.002});
    	},
    	methods: {
@@ -222,8 +226,9 @@ export default {
 				
 				_this.checkGrade = items[0].text;
 				_this.gradeId = items[0].value;
+				console.log(_this.checkGrade);
 				_this.initGetData();
-
+				
 				
 			});
 		},
@@ -258,8 +263,7 @@ export default {
 					store.commit('getCheckClass',[]);
 					_this.SubjectClass=[];
 				}
-				
-//				_this.initGetData();
+
 
 				
 			});
@@ -281,8 +285,15 @@ export default {
 			var picker1 = new mui.PopPicker();
 			picker1.setData(newData);	
 			picker1.show(function(itemes){
-				_this.bigKnow=itemes[0].text;
-				_this.initGetData(itemes[0].value);
+				if(_this.bigKnow != itemes[0].text){
+					_this.bigKnow=itemes[0].text;
+					_this.initGetData(itemes[0].value);
+					
+					_this.smallKnow='未选择';
+					_this.getArticleJson.KnowledgePointId="";
+					_this.KnowledgeId = '';
+				}
+				
 				
 			});
 		},
@@ -309,10 +320,14 @@ export default {
 			var picker1 = new mui.PopPicker();
 			picker1.setData(newData);	
 			picker1.show(function(itemes){
-				_this.smallKnow=itemes[0].text;
-//				_this.initGetData(itemes[0].value);
-				_this.getArticleJson.KnowledgePointId=itemes[0].value;
-				store.commit('getPostArticelData',_this.getArticleJson);
+				if(_this.smallKnow != itemes[0].text){
+					_this.smallKnow=itemes[0].text;
+					_this.checkSubject = [];
+					_this.getArticleJson.KnowledgePointId=itemes[0].value;
+					_this.KnowledgeId = itemes[0].text;
+					store.commit('getPostArticelData',_this.getArticleJson);
+				}
+				
 
 			});
 		},
@@ -333,46 +348,9 @@ export default {
 			picker2.show(function(item){
 				_this.diffcultyStr=item[0].value;
 				_this.getArticleJson.Difficulty=item[0].value;
+				_this.checkSubject = [];
 			});
 		},
-// 		getInfo: function(){
-// 			var _this =this;
-// 			var classInfo = _this.userInfo.classList;
-// 			classInfo.forEach(function(json, index){
-//				if(_this.grade.length === 0){
-//					_this.grade.push(json.GradeName);
-//				}else{
-//					_this.grade.forEach(function(item, num){
-//						if(item != json.GradeName){
-//							_this.grade.push(json.GradeName);
-//						}
-//					})
-//				}
-//			})
-// 			
-// 			store.commit('getGrade', _this.grade);
-//			_this.checkGrade = _this.grade[0]+'-上学期-U1';
-// 		},
-// 		getData: function(){
-//			var _this = this;
-//			var checkGrade = _this.checkGrade.split('-');
-//			var options = {
-//				Grade: checkGrade[0],
-//				Term: checkGrade[1],
-//				Pagesize: _this.pSize,
-//				Pagination: _this.page,
-//				OrderBy: 'Sort ASC'
-//			}
-//			this.$http.post("http://syapp.keys-edu.com/api/Subject/GetData", options).then(function(res){
-//
-//				_this.textList.push.apply(_this.textList, res.body);
-//				_this.page ++ ;
-//				mui('#pullrefresh').pullRefresh().endPullupToRefresh((res.body.length === 0));
-//			}, function(err){
-//				console.log(err);
-//			})
-//		},
-		
 		pickerTime: function(){
 			var _this = this;
 			var dtpicker = new mui.DtPicker({
@@ -465,18 +443,7 @@ export default {
 				if(_this.timeOfUse != '默认不限制'){
 					options.EndTime = _this.endTime;
 				}
-//				options.ObjectID = '';
-//				_this.SubjectClass.forEach(function(json, index){
-//					if(_this.SubjectClass.length === (index + 1)){
-//						options.ObjectID += json.ClassId
-//						return false;
-//					}else{
-//						options.ObjectID += json.ClassId + '|';
-//					}
-//				})
-//console.log(_this.SubjectClass)
-//				for(var i=0;i<_this.SubjectClass.length;i++){
-//					options.ClassesId=_this.SubjectClass[i].Id;
+
 					_this.$http.post("http://ksapi.keys-edu.com///api/task/insertteachertask", options, {"emulateJSON":true}).then(function(res){
 						_this.disable = false;
 						mui.alert('练习发送成功!', '启思教育', function() {

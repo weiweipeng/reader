@@ -50,6 +50,11 @@ export default {
 			self: null
       	}
    	},
+   	mounted: function() {
+   		//初始化滚动组件
+   		mui.init();
+   		mui('.mui-scroll-wrapper').scroll({deceleration:0.002});
+   	},
    	watch: {
 		$route(to, from) {
 			if(store.state.userInfo && from.name == 'releaseTask'){

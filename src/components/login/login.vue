@@ -37,7 +37,8 @@ export default {
    		store.commit('getUserInfo', null);
    	},
    	mounted: function() {
-   		
+   		//初始化滚动组件
+	   		mui.init();
    	},
    	methods: {
    		login: function(){

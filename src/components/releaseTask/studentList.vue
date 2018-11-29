@@ -38,11 +38,31 @@
 		},
 		watch:{
 			checkStu: function(val, oldval){
+				console.log(this.checkStu);
 				store.commit('getStudentList', val);
 			}
+
 		},
+		mounted: function() {
+	   		//初始化滚动组件
+	   		mui.init();
+	   		
+	   		mui('.mui-scroll-wrapper').scroll({deceleration:0.002});
+	   	},
 		activated: function(){
-			this.getData();
+			mui('.mui-scroll-wrapper').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
+			if(this.classId == "" && store.state.checkClass.length>0){
+				this.classId = store.state.checkClass[0].Id;
+				this.checkStu = [];
+				store.commit('getStudentList', []);
+				this.getData();
+			}else if(this.classId != store.state.checkClass[0].Id){
+				this.classId = store.state.checkClass[0].Id;
+				this.checkStu = [];
+				store.commit('getStudentList', []);
+				this.getData();
+			}
+			
 		},
 		methods: {
 			getData: function(){
@@ -66,6 +86,7 @@
 					var stuData=JSON.parse(JSON.parse(res.body).Data)[0].stuList;
 					console.log(stuData);
 					_this.stuList=stuData;
+					mui('.mui-scroll-wrapper').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
 //					store.commit('getStudentList',);
 //					console.log(stuData);
 				});

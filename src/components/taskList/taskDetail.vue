@@ -77,6 +77,8 @@ export default {
    			
    	},
    	mounted: function() {
+   		//初始化滚动组件
+	   		mui.init();
    		mui('.mui-scroll-wrapper').scroll({
 			deceleration: 0.0005
 		});

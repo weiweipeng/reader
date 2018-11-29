@@ -59,7 +59,8 @@ export default {
    	},
    	watch:{
 		checkClass: function(val, oldval){
-			
+			store.commit('getStudentList', []);
+			console.log(store.state.checkStu);
 			if(store.state.classOrPerson){
 				var arr=[];
 				arr.push(val);
@@ -84,15 +85,13 @@ export default {
 			this.checkClass=[];
 		}
 		
-// 		console.log(store.state.classOrPerson);
-// 		console.log(this.checkClass);
+
    		if(store.state.classOrPerson){
    			_this.tarskTypes=1;
    		}else{
    			_this.tarskTypes=0;
    		}
-// 		console.log(this.tarskTypes);
-// 		console.log(this.classList);
+
    	},
    	mounted: function() {
    		mui('.mui-scroll-wrapper').scroll({

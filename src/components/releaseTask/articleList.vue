@@ -12,7 +12,7 @@
 					<div class="tip">
 						<span>Tip：</span>
 						<span class="circle"></span>
-						<span>带有小圆点表示已经选过的篇章！</span>
+						<span>最多只能选择五篇哦！</span>
 					</div>
 					<form class="mui-input-group">
 						<div class="mui-input-row mui-checkbox" v-for="(item, index) in textList">
@@ -43,8 +43,14 @@ export default {
 			postData:{},
 			checkSubject: [],
 			checkGrade: '',
+			diffcultId: '',
 			self: null
       	}
+   	},
+   	mounted: function(){
+   		mui.init();
+   		mui('.mui-input-row input').input();
+   		mui('.mui-scroll-wrapper').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
    	},
    	watch:{
 		checkSubject: function(val,oldval){
@@ -60,18 +66,26 @@ export default {
    		this.postData=store.state.postArticelData;
    		store.commit('getCheckSubject', []);
 		mui('.mui-scroll-wrapper').scroll({bounce: false, deceleration:deceleration});
+		mui('.mui-scroll-wrapper').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
+		
    		if(this.$route.query.checkGrade){
 			//判断是否是第一次加载
    			if(this.checkGrade == ''){
 	   			this.pullRefresh();
-   			}else if(this.checkGrade != this.$route.query.checkGrade){
+   			}else if(this.checkGrade != this.$route.query.checkGrade ){
    				//当改变时，先重置历史数据
    				this.checkSubject = [];
 				this.textList = [];
 				this.page = 1;
 				this.pullRefresh();
+   			}else if(this.diffcultId != this.$route.query.diffcult){
+   				this.checkSubject = [];
+				this.textList = [];
+				this.page = 1;
+				this.pullRefresh();
    			}
-// 			this.checkGrade = this.$route.query.checkGrade;
+   			this.diffcultId = this.$route.query.diffcult;
+   			this.checkGrade = this.$route.query.checkGrade;
    		}
    	},
    	methods: {
@@ -141,6 +155,9 @@ export default {
 				var new_arr=[];
 				console.log(maindata);
 				if(maindata==null){
+					self.endPullDownToRefresh();//关闭下拉刷新
+					self.endPullUpToRefresh(false);
+					mui.toast("没有更多类型的题目啦！")
 					return ;
 				}
 				for(var i=0;i<maindata.length;i++){
